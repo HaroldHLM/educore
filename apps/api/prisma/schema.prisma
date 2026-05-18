@@ -1,0 +1,323 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum Role {
+  SUPER_ADMIN
+  INSTITUTION_ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  JUSTIFIED
+}
+
+// ─────────────────────────────────────────
+// MULTI-TENANT CORE
+// ─────────────────────────────────────────
+
+model Institution {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  logo         String?
+  primaryColor String?  @default("#2563EB")
+  domain       String?  @unique
+  plan         Plan     @default(FREE)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships   Membership[]
+  students      Student[]
+  teachers      Teacher[]
+  courses       Course[]
+  periods       Period[]
+  announcements Announcement[]
+
+  @@map("institutions")
+}
+
+// ─────────────────────────────────────────
+// USUARIOS Y MEMBRESÍAS
+// ─────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  avatar    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships   Membership[]
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model Membership {
+  id            String   @id @default(cuid())
+  userId        String
+  institutionId String
+  role          Role
+  isActive      Boolean  @default(true)
+  joinedAt      DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, institutionId])
+  @@map("memberships")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+// ─────────────────────────────────────────
+// ACADÉMICO
+// ─────────────────────────────────────────
+
+model Period {
+  id            String   @id @default(cuid())
+  institutionId String
+  name          String
+  startDate     DateTime
+  endDate       DateTime
+  isActive      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  institution Institution  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  grades      Grade[]
+  attendances Attendance[]
+
+  @@map("periods")
+}
+
+model Student {
+  id            String    @id @default(cuid())
+  institutionId String
+  userId        String?
+  code          String
+  firstName     String
+  lastName      String
+  birthDate     DateTime?
+  dni           String?
+  email         String?
+  phone         String?
+  parentName    String?
+  parentPhone   String?
+  parentEmail   String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  institution Institution  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  enrollments Enrollment[]
+  grades      Grade[]
+  attendances Attendance[]
+  reportCards ReportCard[]
+
+  @@unique([institutionId, code])
+  @@map("students")
+}
+
+model Teacher {
+  id            String  @id @default(cuid())
+  institutionId String
+  userId        String
+  specialty     String?
+  isActive      Boolean @default(true)
+  createdAt     DateTime @default(now())
+
+  institution Institution     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  courses     CourseTeacher[]
+
+  @@map("teachers")
+}
+
+model Course {
+  id            String @id @default(cuid())
+  institutionId String
+  name          String
+  grade         String
+  section       String
+  year          Int
+  createdAt     DateTime @default(now())
+
+  institution Institution     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  teachers    CourseTeacher[]
+  subjects    Subject[]
+  enrollments Enrollment[]
+
+  @@map("courses")
+}
+
+model CourseTeacher {
+  courseId  String
+  teacherId String
+
+  course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, teacherId])
+  @@map("course_teachers")
+}
+
+model Subject {
+  id       String @id @default(cuid())
+  courseId String
+  name     String
+  credits  Int    @default(1)
+  weight   Float  @default(1.0)
+
+  course Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  grades Grade[]
+
+  @@map("subjects")
+}
+
+model Enrollment {
+  id         String   @id @default(cuid())
+  studentId  String
+  courseId   String
+  enrolledAt DateTime @default(now())
+  isActive   Boolean  @default(true)
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, courseId])
+  @@map("enrollments")
+}
+
+// ─────────────────────────────────────────
+// NOTAS Y ASISTENCIA
+// ─────────────────────────────────────────
+
+model Grade {
+  id            String   @id @default(cuid())
+  institutionId String
+  studentId     String
+  subjectId     String
+  periodId      String
+  score         Float
+  observation   String?
+  gradedBy      String
+  gradedAt      DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  period  Period  @relation(fields: [periodId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, subjectId, periodId])
+  @@map("grades")
+}
+
+model Attendance {
+  id        String           @id @default(cuid())
+  studentId String
+  periodId  String
+  date      DateTime
+  status    AttendanceStatus
+  note      String?
+  createdAt DateTime         @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  period  Period  @relation(fields: [periodId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, date])
+  @@map("attendances")
+}
+
+// ─────────────────────────────────────────
+// BOLETINES
+// ─────────────────────────────────────────
+
+model ReportCard {
+  id            String   @id @default(cuid())
+  institutionId String
+  studentId     String
+  periodId      String
+  average       Float
+  ranking       Int?
+  observation   String?
+  pdfUrl        String?
+  generatedAt   DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("report_cards")
+}
+
+// ─────────────────────────────────────────
+// COMUNICACIÓN
+// ─────────────────────────────────────────
+
+model Announcement {
+  id            String   @id @default(cuid())
+  institutionId String
+  title         String
+  content       String
+  authorId      String
+  createdAt     DateTime @default(now())
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@map("announcements")
+}
+
+// ─────────────────────────────────────────
+// AUDITORÍA
+// ─────────────────────────────────────────
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  institutionId String?
+  userId        String
+  action        String
+  entity        String
+  entityId      String
+  oldValue      Json?
+  newValue      Json?
+  ipAddress     String?
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
+}
