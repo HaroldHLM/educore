@@ -12,7 +12,8 @@ datasource db {
 // ─────────────────────────────────────────
 
 enum Plan {
-  FREE
+  BASE
+  INTERMEDIO
   PRO
   ENTERPRISE
 }
@@ -43,7 +44,7 @@ model Institution {
   logo         String?
   primaryColor String?  @default("#2563EB")
   domain       String?  @unique
-  plan         Plan     @default(FREE)
+  plan         Plan     @default(BASE)
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
