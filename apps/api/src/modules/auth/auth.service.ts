@@ -6,9 +6,14 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
+
+type AuthMembership = Prisma.MembershipGetPayload<{
+  include: { institution: true };
+}>;
 
 @Injectable()
 export class AuthService {
@@ -136,7 +141,7 @@ export class AuthService {
     };
   }
 
-  private async generateTokens(userId: string, membership: any) {
+  private async generateTokens(userId: string, membership: AuthMembership) {
     const payload = {
       sub: userId,
       institutionId: membership.institutionId,

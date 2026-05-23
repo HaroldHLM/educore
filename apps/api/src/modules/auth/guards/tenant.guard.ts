@@ -1,18 +1,26 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
+import { TenantRequest } from '../../../common/interfaces/tenant-request.interface';
 
 @Injectable()
 export class TenantGuard implements CanActivate {
   constructor(private prisma: PrismaService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<TenantRequest>();
     const user = request.user;
 
     if (!user) throw new UnauthorizedException();
 
     const slug = request.headers['x-institution-slug'] as string;
-    if (!slug) throw new ForbiddenException('Header x-institution-slug requerido');
+    if (!slug)
+      throw new ForbiddenException('Header x-institution-slug requerido');
 
     const membership = await this.prisma.membership.findFirst({
       where: {
@@ -29,8 +37,9 @@ export class TenantGuard implements CanActivate {
 
     // Inyecta institución y rol en el request
     request.institution = membership.institution;
-    request.user.role = membership.role;
-    request.user.institutionId = membership.institutionId;
+    user.role = membership.role;
+    user.institutionId = membership.institutionId;
+    user.institutionSlug = membership.institution.slug;
 
     return true;
   }
