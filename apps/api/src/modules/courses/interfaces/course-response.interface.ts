@@ -1,7 +1,8 @@
 export interface CourseResponse {
   id: string;
   institutionId: string;
-  name: string;
+  name: string | null;
+  displayName: string;
   grade: string;
   section: string;
   year: number;
