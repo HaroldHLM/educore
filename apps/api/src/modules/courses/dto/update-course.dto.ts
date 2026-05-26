@@ -5,6 +5,7 @@ export class UpdateCourseDto {
   @IsOptional()
   @IsString()
   @Length(2, 120)
+  /** Legacy label. Prefer displayName from grade + section + year. */
   name?: string;
 
   @IsOptional()

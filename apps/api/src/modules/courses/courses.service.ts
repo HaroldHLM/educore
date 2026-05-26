@@ -120,7 +120,6 @@ export class CoursesService {
     await this.ensureCourseIsUnique(
       institutionId,
       {
-        name: dto.name ?? existingCourse.name,
         grade: dto.grade ?? existingCourse.grade,
         section: dto.section ?? existingCourse.section,
         year: dto.year ?? existingCourse.year,
@@ -176,9 +175,11 @@ export class CoursesService {
       ...(search
         ? {
             OR: [
-              { name: { contains: search, mode: 'insensitive' } },
               { grade: { contains: search, mode: 'insensitive' } },
               { section: { contains: search, mode: 'insensitive' } },
+              ...(Number.isNaN(Number(search))
+                ? []
+                : [{ year: Number(search) }]),
             ],
           }
         : {}),
@@ -203,13 +204,12 @@ export class CoursesService {
 
   private async ensureCourseIsUnique(
     institutionId: string,
-    course: Pick<CreateCourseDto, 'name' | 'grade' | 'section' | 'year'>,
+    course: Pick<CreateCourseDto, 'grade' | 'section' | 'year'>,
     excludeCourseId?: string,
   ): Promise<void> {
     const duplicatedCourse = await this.prisma.course.findFirst({
       where: {
         institutionId,
-        name: course.name,
         grade: course.grade,
         section: course.section,
         year: course.year,
@@ -220,7 +220,7 @@ export class CoursesService {
 
     if (duplicatedCourse) {
       throw new ConflictException(
-        'Ya existe un curso con el mismo nombre, grado, sección y año',
+        'Ya existe un curso con el mismo grado, sección y año',
       );
     }
   }
@@ -238,6 +238,7 @@ export class CoursesService {
       id: course.id,
       institutionId: course.institutionId,
       name: course.name,
+      displayName: this.buildDisplayName(course),
       grade: course.grade,
       section: course.section,
       year: course.year,
@@ -245,5 +246,11 @@ export class CoursesService {
       totalStudents: course._count.enrollments,
       totalSubjects: course._count.subjects,
     };
+  }
+
+  private buildDisplayName(
+    course: Pick<CourseWithCounts, 'grade' | 'section' | 'year'>,
+  ): string {
+    return `${course.grade} ${course.section} - ${course.year}`;
   }
 }
