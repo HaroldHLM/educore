@@ -124,15 +124,15 @@ async function main() {
   // ─────────────────────────────────────────
   // Period no tiene @@unique en name, usamos findFirst + create
   let period = await prisma.period.findFirst({
-    where: { institutionId: institution.id, name: '2024 — I Trimestre' },
+    where: { institutionId: institution.id, name: '2026 — I Trimestre' },
   });
   if (!period) {
     period = await prisma.period.create({
       data: {
         institutionId: institution.id,
-        name: '2024 — I Trimestre',
-        startDate: new Date('2024-03-01'),
-        endDate: new Date('2024-06-30'),
+        name: '2026 — I Trimestre',
+        startDate: new Date('2026-03-01'),
+        endDate: new Date('2026-06-30'),
         isActive: true,
       },
     });
@@ -142,22 +142,21 @@ async function main() {
   // ─────────────────────────────────────────
   // CURSO
   // ─────────────────────────────────────────
-  // Course tampoco tiene @@unique, buscamos por name + institutionId + year
+  // Course representa aula/grado/sección/año. Las materias viven en Subject.
   let course = await prisma.course.findFirst({
-    where: { institutionId: institution.id, name: '5to Secundaria A', year: 2024 },
+    where: { institutionId: institution.id, grade: '5to', section: 'A', year: 2026 },
   });
   if (!course) {
     course = await prisma.course.create({
       data: {
         institutionId: institution.id,
-        name: '5to Secundaria A',
         grade: '5to',
         section: 'A',
-        year: 2024,
+        year: 2026,
       },
     });
   }
-  console.log(`✅ Curso: ${course.name}`);
+  console.log(`✅ Curso: ${course.grade} ${course.section} - ${course.year}`);
 
   // Asignar docentes al curso (CourseTeacher tiene @@id compuesto)
   await prisma.courseTeacher.upsert({
@@ -176,7 +175,7 @@ async function main() {
   // ─────────────────────────────────────────
   // Subject no tiene @@unique, buscamos por name + courseId
   const subjectsData = [
-    { name: 'Matemáticas', credits: 4, weight: 1.5 },
+    { name: 'Matemática',  credits: 4, weight: 1.5 },
     { name: 'Lenguaje',    credits: 4, weight: 1.5 },
     { name: 'Ciencias',    credits: 3, weight: 1.0 },
     { name: 'Historia',    credits: 3, weight: 1.0 },
@@ -200,14 +199,14 @@ async function main() {
   // ESTUDIANTES
   // ─────────────────────────────────────────
   const studentsData = [
-    { code: '2024001', firstName: 'Lucía',     lastName: 'Torres',   email: 'lucia.torres@demo.com',   parentName: 'Ana Torres',     parentPhone: '999111001' },
-    { code: '2024002', firstName: 'Diego',     lastName: 'Ramírez',  email: 'diego.ramirez@demo.com',  parentName: 'Luis Ramírez',   parentPhone: '999111002' },
-    { code: '2024003', firstName: 'Sofía',     lastName: 'Castro',   email: 'sofia.castro@demo.com',   parentName: 'Rosa Castro',    parentPhone: '999111003' },
-    { code: '2024004', firstName: 'Mateo',     lastName: 'Vega',     email: 'mateo.vega@demo.com',     parentName: 'Jorge Vega',     parentPhone: '999111004' },
-    { code: '2024005', firstName: 'Valentina', lastName: 'Flores',   email: 'vale.flores@demo.com',    parentName: 'Carmen Flores',  parentPhone: '999111005' },
-    { code: '2024006', firstName: 'Sebastián', lastName: 'Morales',  email: 'seba.morales@demo.com',   parentName: 'Pedro Morales',  parentPhone: '999111006' },
-    { code: '2024007', firstName: 'Isabella',  lastName: 'Herrera',  email: 'isa.herrera@demo.com',    parentName: 'Gloria Herrera', parentPhone: '999111007' },
-    { code: '2024008', firstName: 'Nicolás',   lastName: 'Jiménez',  email: 'nico.jimenez@demo.com',   parentName: 'Marta Jiménez',  parentPhone: '999111008' },
+    { code: '2026001', firstName: 'Lucía',     lastName: 'Torres',   email: 'lucia.torres@demo.com',   parentName: 'Ana Torres',     parentPhone: '999111001' },
+    { code: '2026002', firstName: 'Diego',     lastName: 'Ramírez',  email: 'diego.ramirez@demo.com',  parentName: 'Luis Ramírez',   parentPhone: '999111002' },
+    { code: '2026003', firstName: 'Sofía',     lastName: 'Castro',   email: 'sofia.castro@demo.com',   parentName: 'Rosa Castro',    parentPhone: '999111003' },
+    { code: '2026004', firstName: 'Mateo',     lastName: 'Vega',     email: 'mateo.vega@demo.com',     parentName: 'Jorge Vega',     parentPhone: '999111004' },
+    { code: '2026005', firstName: 'Valentina', lastName: 'Flores',   email: 'vale.flores@demo.com',    parentName: 'Carmen Flores',  parentPhone: '999111005' },
+    { code: '2026006', firstName: 'Sebastián', lastName: 'Morales',  email: 'seba.morales@demo.com',   parentName: 'Pedro Morales',  parentPhone: '999111006' },
+    { code: '2026007', firstName: 'Isabella',  lastName: 'Herrera',  email: 'isa.herrera@demo.com',    parentName: 'Gloria Herrera', parentPhone: '999111007' },
+    { code: '2026008', firstName: 'Nicolás',   lastName: 'Jiménez',  email: 'nico.jimenez@demo.com',   parentName: 'Marta Jiménez',  parentPhone: '999111008' },
   ];
 
   // Student tiene @@unique([institutionId, code]) — podemos usar upsert
@@ -280,11 +279,11 @@ async function main() {
   // ─────────────────────────────────────────
   // Attendance tiene @@unique([studentId, date])
   const attendanceDates = [
-    new Date('2024-06-03'),
-    new Date('2024-06-04'),
-    new Date('2024-06-05'),
-    new Date('2024-06-06'),
-    new Date('2024-06-07'),
+    new Date('2026-06-03'),
+    new Date('2026-06-04'),
+    new Date('2026-06-05'),
+    new Date('2026-06-06'),
+    new Date('2026-06-07'),
   ];
 
   const statusTable: AttendanceStatus[][] = [
@@ -328,8 +327,8 @@ async function main() {
   console.log('  TEACHER           maria.garcia@educore.com');
   console.log('  TEACHER           juan.perez@educore.com');
   console.log('\n🏫 Slug:      colegio-demo');
-  console.log('📅 Periodo:   2024 — I Trimestre');
-  console.log('📚 Curso:     5to Secundaria A');
+  console.log('📅 Periodo:   2026 — I Trimestre');
+  console.log('📚 Curso:     5to A - 2026');
   console.log(`👥 Alumnos:   ${students.length}`);
   console.log('──────────────────────────────────────────\n');
 }

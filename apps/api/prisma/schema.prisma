@@ -157,23 +157,25 @@ model Student {
 }
 
 model Teacher {
-  id            String  @id @default(cuid())
+  id            String   @id @default(cuid())
   institutionId String
   userId        String
   specialty     String?
-  isActive      Boolean @default(true)
+  isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
 
   institution Institution     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   courses     CourseTeacher[]
 
+  subjects Subject[]
+
   @@map("teachers")
 }
 
 model Course {
-  id            String @id @default(cuid())
+  id            String   @id @default(cuid())
   institutionId String
-  name          String
+  name          String?
   grade         String
   section       String
   year          Int
@@ -184,6 +186,7 @@ model Course {
   subjects    Subject[]
   enrollments Enrollment[]
 
+  @@unique([institutionId, grade, section, year])
   @@map("courses")
 }
 
@@ -199,15 +202,20 @@ model CourseTeacher {
 }
 
 model Subject {
-  id       String @id @default(cuid())
-  courseId String
+  id        String  @id @default(cuid())
+  courseId  String
+  teacherId String?
+
   name     String
-  credits  Int    @default(1)
-  weight   Float  @default(1.0)
+  credits  Int     @default(1)
+  weight   Float   @default(1.0)
+  isActive Boolean @default(true)
 
-  course Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  grades Grade[]
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teacher Teacher? @relation(fields: [teacherId], references: [id])
+  grades  Grade[]
 
+  @@unique([courseId, name])
   @@map("subjects")
 }
 
