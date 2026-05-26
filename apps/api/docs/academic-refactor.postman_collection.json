@@ -1,0 +1,280 @@
+{
+  "info": {
+    "name": "Educore Academic Refactor Validation",
+    "description": "Validates Course as classroom/grade-section-year and Subject as academic subject. Set baseUrl, accessToken, institutionSlug, courseId, subjectId, teacherId.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000/api" },
+    { "key": "accessToken", "value": "" },
+    { "key": "institutionSlug", "value": "colegio-demo" },
+    { "key": "courseId", "value": "" },
+    { "key": "subjectId", "value": "" },
+    { "key": "teacherId", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{accessToken}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login institution admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@educore.com\",\n  \"password\": \"Password123!\",\n  \"institutionSlug\": \"{{institutionSlug}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login teacher",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"maria.garcia@educore.com\",\n  \"password\": \"Password123!\",\n  \"institutionSlug\": \"{{institutionSlug}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Courses",
+      "item": [
+        {
+          "name": "Create course classroom - valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-institution-slug", "value": "{{institutionSlug}}" }
+            ],
+            "url": "{{baseUrl}}/courses",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grade\": \"5to\",\n  \"section\": \"A\",\n  \"year\": 2026\n}"
+            }
+          }
+        },
+        {
+          "name": "Create course classroom - invalid duplicate",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-institution-slug", "value": "{{institutionSlug}}" }
+            ],
+            "url": "{{baseUrl}}/courses",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grade\": \"5to\",\n  \"section\": \"A\",\n  \"year\": 2026\n}"
+            }
+          }
+        },
+        {
+          "name": "Create course classroom - invalid year",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-institution-slug", "value": "{{institutionSlug}}" }
+            ],
+            "url": "{{baseUrl}}/courses",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grade\": \"5to\",\n  \"section\": \"A\",\n  \"year\": 1800\n}"
+            }
+          }
+        },
+        {
+          "name": "List courses",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-institution-slug", "value": "{{institutionSlug}}" }],
+            "url": "{{baseUrl}}/courses?page=1&limit=10&search=5to&year=2026&grade=5to"
+          }
+        },
+        {
+          "name": "Get course by id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-institution-slug", "value": "{{institutionSlug}}" }],
+            "url": "{{baseUrl}}/courses/{{courseId}}"
+          }
+        },
+        {
+          "name": "Patch course section/year",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-institution-slug", "value": "{{institutionSlug}}" }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"section\": \"B\",\n  \"year\": 2026\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete course without relations",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "x-institution-slug", "value": "{{institutionSlug}}" }],
+            "url": "{{baseUrl}}/courses/{{courseId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subjects",
+      "item": [
+        {
+          "name": "Create subject - valid with teacher",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-institution-slug", "value": "{{institutionSlug}}" }
+            ],
+            "url": "{{baseUrl}}/subjects",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"{{courseId}}\",\n  \"teacherId\": \"{{teacherId}}\",\n  \"name\": \"Matemática\",\n  \"credits\": 3,\n  \"weight\": 1.5\n}"
+            }
+          }
+        },
+        {
+          "name": "Create subject - invalid duplicate in same course",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-institution-slug", "value": "{{institutionSlug}}" }
+            ],
+            "url": "{{baseUrl}}/subjects",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"{{courseId}}\",\n  \"name\": \"Matemática\",\n  \"credits\": 3,\n  \"weight\": 1.5\n}"
+            }
+          }
+        },
+        {
+          "name": "Create subject - invalid weight",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-institution-slug", "value": "{{institutionSlug}}" }
+            ],
+            "url": "{{baseUrl}}/subjects",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"{{courseId}}\",\n  \"name\": \"Historia\",\n  \"credits\": 3,\n  \"weight\": 0\n}"
+            }
+          }
+        },
+        {
+          "name": "List subjects",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-institution-slug", "value": "{{institutionSlug}}" }],
+            "url": "{{baseUrl}}/subjects?page=1&limit=10&search=mate&courseId={{courseId}}"
+          }
+        },
+        {
+          "name": "Get subject by id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-institution-slug", "value": "{{institutionSlug}}" }],
+            "url": "{{baseUrl}}/subjects/{{subjectId}}"
+          }
+        },
+        {
+          "name": "Patch subject reactivate/update",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-institution-slug", "value": "{{institutionSlug}}" }
+            ],
+            "url": "{{baseUrl}}/subjects/{{subjectId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credits\": 4,\n  \"weight\": 1.2,\n  \"isActive\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Assign teacher",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-institution-slug", "value": "{{institutionSlug}}" }
+            ],
+            "url": "{{baseUrl}}/subjects/{{subjectId}}/teacher",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teacherId\": \"{{teacherId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove teacher",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-institution-slug", "value": "{{institutionSlug}}" }
+            ],
+            "url": "{{baseUrl}}/subjects/{{subjectId}}/teacher",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teacherId\": null\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teachers",
+      "item": [
+        {
+          "name": "List teachers with course displayName",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-institution-slug", "value": "{{institutionSlug}}" }],
+            "url": "{{baseUrl}}/teachers?page=1&limit=10"
+          }
+        },
+        {
+          "name": "Assign courses to teacher",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-institution-slug", "value": "{{institutionSlug}}" }
+            ],
+            "url": "{{baseUrl}}/teachers/{{teacherId}}/courses",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseIds\": [\"{{courseId}}\"]\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
