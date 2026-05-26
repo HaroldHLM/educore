@@ -1,6 +1,6 @@
 export interface TeacherCourseResponse {
   id: string;
-  name: string;
+  displayName: string;
   grade: string;
   section: string;
   year: number;

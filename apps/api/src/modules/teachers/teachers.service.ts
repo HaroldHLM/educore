@@ -30,7 +30,6 @@ const teacherSelect = {
       course: {
         select: {
           id: true,
-          name: true,
           grade: true,
           section: true,
           year: true,
@@ -458,7 +457,22 @@ export class TeachersService {
       userIsActive: user.isActive,
       createdAt: teacher.createdAt,
       totalCourses: teacher._count.courses,
-      courses: teacher.courses.map(({ course }) => course),
+      courses: teacher.courses.map(({ course }) => ({
+        id: course.id,
+        displayName: this.buildCourseDisplayName(course),
+        grade: course.grade,
+        section: course.section,
+        year: course.year,
+      })),
     };
+  }
+
+  private buildCourseDisplayName(
+    course: Pick<
+      TeacherWithCourses['courses'][number]['course'],
+      'grade' | 'section' | 'year'
+    >,
+  ): string {
+    return `${course.grade} ${course.section} - ${course.year}`;
   }
 }
