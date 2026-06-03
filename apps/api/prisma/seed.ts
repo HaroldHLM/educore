@@ -227,7 +227,11 @@ async function main() {
       prisma.enrollment.upsert({
         where: { studentId_courseId: { studentId: s.id, courseId: course!.id } },
         update: {},
-        create: { studentId: s.id, courseId: course!.id },
+        create: {
+          institutionId: institution.id,
+          studentId: s.id,
+          courseId: course!.id,
+        },
       })
     )
   );
@@ -304,6 +308,7 @@ async function main() {
           where: { studentId_date: { studentId: students[si].id, date } },
           update: {},
           create: {
+            institutionId: institution.id,
             studentId: students[si].id,
             periodId:  period!.id,
             date,

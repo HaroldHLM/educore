@@ -220,11 +220,16 @@ model Subject {
 }
 
 model Enrollment {
-  id         String   @id @default(cuid())
-  studentId  String
-  courseId   String
-  enrolledAt DateTime @default(now())
-  isActive   Boolean  @default(true)
+  id            String @id @default(cuid())
+  institutionId String
+
+  studentId String
+  courseId  String
+
+  enrolledAt  DateTime  @default(now())
+  withdrawnAt DateTime?
+
+  isActive Boolean @default(true)
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -258,19 +263,24 @@ model Grade {
 }
 
 model Attendance {
-  id        String           @id @default(cuid())
-  studentId String
-  periodId  String
-  date      DateTime
-  status    AttendanceStatus
-  note      String?
-  createdAt DateTime         @default(now())
+  id            String @id @default(cuid())
+  institutionId String
+  studentId     String
+  periodId      String
+  date          DateTime
+  status        AttendanceStatus
+  note          String?
+
+  createdAt     DateTime @default(now())
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   period  Period  @relation(fields: [periodId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, date])
   @@map("attendances")
+
+  @@index([institutionId])
+  @@index([periodId])
 }
 
 // ─────────────────────────────────────────
