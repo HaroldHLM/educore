@@ -125,6 +125,7 @@ model Period {
   grades      Grade[]
   attendances Attendance[]
 
+  @@index([institutionId])
   @@map("periods")
 }
 
