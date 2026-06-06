@@ -5,6 +5,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { AttendancesModule } from './modules/attendances/attendances.module';
 import { CoursesModule } from './modules/courses/courses.module';
 import { EnrollmentsModule } from './modules/enrollments/enrollments.module';
+import { GradesModule } from './modules/grades/grades.module';
 import { InstitutionsModule } from './modules/institutions/institutions.module';
 import { PeriodsModule } from './modules/periods/periods.module';
 import { StudentsModule } from './modules/students/students.module';
@@ -24,6 +25,7 @@ import { TeachersModule } from './modules/teachers/teachers.module';
     TeachersModule,
     SubjectsModule,
     PeriodsModule,
+    GradesModule,
   ],
 })
 export class AppModule {}
